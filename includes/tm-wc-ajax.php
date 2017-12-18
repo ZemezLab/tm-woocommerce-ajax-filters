@@ -137,6 +137,7 @@ class TM_WooCommerce_Ajax {
 
 		$args = $wp->query_vars;
 		$args = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
+		$args['post_status'] = 'publish';
 
 		parse_str( parse_url( $page_url, PHP_URL_QUERY ), $_GET );
 
@@ -221,6 +222,7 @@ class TM_WooCommerce_Ajax {
 		parse_str( parse_url( $page_url, PHP_URL_QUERY ), $_GET );
 
 		$args = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
+		$args['post_status'] = 'publish';
 
 		$wcquery = new TM_WC_Query();
 		$posts   = new WP_Query( $args );
