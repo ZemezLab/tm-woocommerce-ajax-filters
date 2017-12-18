@@ -1,0 +1,5 @@
+<wpml-config>
+	<admin-texts>
+		<key name="tm_wc_ajax_filters_loadmore_label"/>
+	</admin-texts>
+</wpml-config>
