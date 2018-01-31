@@ -2,13 +2,15 @@
 /**
  * Plugin Name: TM WooCommerce Ajax Filters
  * Description: Smart Ajax Filter for WooCommerce
- * Version:     1.0.5
+ * Version:     1.0.6
  * Author:      TemplateMonster
  * Author URL:  http://www.templatemonster.com/wordpress-themes.php
  * Text Domain: tm-woocommerce-ajax-filters
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
  * Domain Path: /languages
+ * WC requires at least: 2.6.0
+ * WC tested up to: 3.3.0
  */
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -83,6 +85,7 @@ class TM_WC_Ajax_Filters {
 
 			self::$_instance = new self();
 		}
+
 		return self::$_instance;
 	}
 
@@ -90,7 +93,7 @@ class TM_WC_Ajax_Filters {
 	 * Sets up needed actions/filters for the theme to initialize.
 	 *
 	 * @since 1.0.0
-	*/
+	 */
 	public function __construct() {
 
 		if ( ! $this->has_woocommerce() || defined( 'TM_WC_AJAX_FILTERS_VERISON' ) ) {
@@ -142,6 +145,7 @@ class TM_WC_Ajax_Filters {
 	 * Try to set apropriate queried object ID
 	 *
 	 * @param  mixed $id Current object ID
+	 *
 	 * @return mixed
 	 */
 	public function maybe_set_queried_object( $id ) {
@@ -170,9 +174,9 @@ class TM_WC_Ajax_Filters {
 
 		$details_link = self_admin_url( 'plugin-install.php?tab=plugin-information&amp;plugin=woocommerce&amp;TB_iframe=true&amp;width=600&amp;height=550' );
 		?>
-		<div class="notice notice-warning is-dismissible">
-			<p><?php printf( __( 'TM WooCommerce Ajax Filters is enabled but not effective. It requires %s in order to work. Please install and activate it.', 'tm-woocommerce-ajax-filters' ), '<a href="' . esc_url( $details_link ) . '" class="thickbox open-plugin-details-modal">' . __( 'WooCommerce', 'tm-woocommerce-ajax-filters' ) . '</a>' ); ?></p>
-		</div>
+			<div class="notice notice-warning is-dismissible">
+				<p><?php printf( __( 'TM WooCommerce Ajax Filters is enabled but not effective. It requires %s in order to work. Please install and activate it.', 'tm-woocommerce-ajax-filters' ), '<a href="' . esc_url( $details_link ) . '" class="thickbox open-plugin-details-modal">' . __( 'WooCommerce', 'tm-woocommerce-ajax-filters' ) . '</a>' ); ?></p>
+			</div>
 		<?php
 	}
 
@@ -238,8 +242,10 @@ class TM_WC_Ajax_Filters {
 				apply_filters( 'active_plugins', get_option( 'active_plugins' ) )
 			);
 		}
+
 		return $this->has_woocommerce;
 	}
+
 
 	public function register_admin_assets() {
 
@@ -251,7 +257,7 @@ class TM_WC_Ajax_Filters {
 	 *
 	 * @since 1.0.0
 	 * @return void
-	*/
+	 */
 	public function register_assets() {
 
 		// TM Woo Grid-List
@@ -260,7 +266,7 @@ class TM_WC_Ajax_Filters {
 
 		wp_localize_script( 'tm-wc-ajax-products', 'tmWooAjaxProducts', array(
 			'ajaxurl'        => admin_url( 'admin-ajax.php', is_ssl() ? 'https' : 'http' ),
-			'ajaxOrderby'    => 'yes' === get_option( 'tm_wc_ajax_filters_ordering_enable', 'yes' )   ? true : false,
+			'ajaxOrderby'    => 'yes' === get_option( 'tm_wc_ajax_filters_ordering_enable', 'yes' ) ? true : false,
 			'ajaxPagination' => 'yes' === get_option( 'tm_wc_ajax_filters_pagination_enable', 'yes' ) ? true : false
 		) );
 
@@ -284,6 +290,7 @@ class TM_WC_Ajax_Filters {
 
 			$this->plugin_dir = trailingslashit( plugin_dir_path( __FILE__ ) );
 		}
+
 		return $this->plugin_dir . $path;
 	}
 
@@ -305,10 +312,11 @@ class TM_WC_Ajax_Filters {
 
 		global $sitepress;
 
-		if( isset( $sitepress ) ) {
+		if ( isset( $sitepress ) ) {
 
 			$id = icl_object_id( $id, 'product', true, $sitepress->get_default_language() );
 		}
+
 		return $id;
 	}
 }
