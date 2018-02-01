@@ -328,10 +328,15 @@ if ( class_exists( 'WC_Widget_Layered_Nav' ) ) {
 			return $found;
 		}
 
-		public function get_page_base_url( $taxonomy = '' ) {
 
+		public function get_page_base_url( $taxonomy = '' ) {
+			if ( tm_ajax_wc_version_check( '3.3' ) ){
+				return parent::get_current_page_url( $taxonomy );
+			}
 			return parent::get_page_base_url( $taxonomy );
 		}
+
+
 	}
 }
 

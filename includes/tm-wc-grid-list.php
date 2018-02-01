@@ -181,7 +181,7 @@ class TM_WC_Grid_List {
 	}
 
 	public function add_toggle_button() {
-		if ( woocommerce_prop_is_shortcode() ) {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
 			return;
 		}
 

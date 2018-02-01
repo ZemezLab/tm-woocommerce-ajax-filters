@@ -34,7 +34,7 @@ class TM_WooCommerce_Ajax {
 
 		add_action( 'dynamic_sidebar_before', array( $this, 'dynamic_sidebar_before' ) );
 
-		add_action( 'woocommerce_before_shop_loop', array( $this, 'products_wrapper_start' ), - 999 );
+		add_action( 'woocommerce_before_shop_loop', array( $this, 'products_wrapper_start' ), -999 );
 
 		add_action( 'woocommerce_after_shop_loop', array( $this, 'products_wrapper_end' ), 999 );
 
@@ -58,7 +58,7 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function woocommerce_before_template_part( $template_name, $template_path, $located, $args ) {
-		if ( woocommerce_prop_is_shortcode() ) {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
 			return;
 		}
 
@@ -80,7 +80,7 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function products_wrapper_start() {
-		if ( woocommerce_prop_is_shortcode() ) {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
 			return;
 		}
 
@@ -88,7 +88,7 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function products_wrapper_end() {
-		if ( woocommerce_prop_is_shortcode() ) {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
 			return;
 		}
 
@@ -334,7 +334,7 @@ class TM_WooCommerce_Ajax {
 	 *
 	 */
 	public function process_ajax_get_products() {
-		if ( woocommerce_version_check( '3.3' ) ) {
+		if ( tm_ajax_wc_version_check( '3.3' ) ) {
 
 			wc_setup_loop();
 			$categories = false;
@@ -481,7 +481,7 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function load_more_button() {
-		if ( woocommerce_prop_is_shortcode() ) {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
 			return;
 		}
 
@@ -557,7 +557,7 @@ class TM_WooCommerce_Ajax {
 	 * @return bool.
 	 */
 	public function wc_last_page_loaded() {
-		if ( woocommerce_version_check( '3.3' ) ) {
+		if ( tm_ajax_wc_version_check( '3.3' ) ) {
 			$current = wc_get_loop_prop( 'current_page' );
 			$total   = wc_get_loop_prop( 'total_pages' );
 

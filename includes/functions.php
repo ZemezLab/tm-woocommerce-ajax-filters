@@ -67,14 +67,14 @@ if ( ! function_exists( 'tm_wc_ajax_is_shop' ) ) {
 
 }
 
-if ( ! function_exists( 'woocommerce_version_check' ) ) {
+if ( ! function_exists( 'tm_ajax_wc_version_check' ) ) {
 	/**
 	 * Check WooCommerce version
 	 *
 	 * @since  1.0.6
 	 * @return bool
 	 */
-	function woocommerce_version_check( $version = '2.1' ) {
+	function tm_ajax_wc_version_check( $version = '2.1' ) {
 		global $woocommerce;
 
 		if ( version_compare( $woocommerce->version, $version, ">=" ) ) {
@@ -86,15 +86,15 @@ if ( ! function_exists( 'woocommerce_version_check' ) ) {
 }
 
 
-if ( ! function_exists( 'woocommerce_prop_is_shortcode' ) ) {
+if ( ! function_exists( 'tm_ajax_wc_prop_is_shortcode' ) ) {
 	/**
 	 * Check WooCommerce version
 	 *
 	 * @since  1.0.6
 	 * @return bool
 	 */
-	function woocommerce_prop_is_shortcode() {
-		if ( function_exists( 'wc_get_loop_prop' ) && wc_get_loop_prop( 'is_shortcode' ) && woocommerce_version_check( '3.3' ) ) {
+	function tm_ajax_wc_prop_is_shortcode() {
+		if ( function_exists( 'wc_get_loop_prop' ) && wc_get_loop_prop( 'is_shortcode' ) && tm_ajax_wc_version_check( '3.3' ) ) {
 			return true;
 		}
 
