@@ -29,7 +29,7 @@ class TM_WC_Grid_List {
 		add_filter( 'product_cat_class', array( $this, 'add_category_class' ), 10, 3 );
 
 		add_action( 'woocommerce_before_shop_loop', array( $this, 'set_gl_trigger' ) );
-		add_action( 'woocommerce_after_shop_loop',  array( $this, 'unset_gl_trigger' ) );
+		add_action( 'woocommerce_after_shop_loop', array( $this, 'unset_gl_trigger' ) );
 	}
 
 	/**
@@ -42,6 +42,7 @@ class TM_WC_Grid_List {
 		// Directly passed in request value has much priority
 		if ( isset( $_REQUEST['glCondition'] ) && in_array( $_REQUEST['glCondition'], $gl ) ) {
 			$this->condition = $_REQUEST['glCondition'];
+
 			return;
 		}
 
@@ -69,6 +70,7 @@ class TM_WC_Grid_List {
 
 			self::$_instance = new self();
 		}
+
 		return self::$_instance;
 	}
 
@@ -84,7 +86,10 @@ class TM_WC_Grid_List {
 
 			if ( $name && ! WC_TEMPLATE_DEBUG_MODE ) {
 
-				$template = locate_template( array( "{$slug}-{$name}.php", WC()->template_path() . "{$slug}-{$name}.php" ) );
+				$template = locate_template( array(
+					"{$slug}-{$name}.php",
+					WC()->template_path() . "{$slug}-{$name}.php"
+				) );
 			}
 
 			if ( ! $template && $name && file_exists( tm_wc_ajax_filters()->plugin_dir( "/templates/{$slug}-{$name}.php" ) ) ) {
@@ -154,7 +159,7 @@ class TM_WC_Grid_List {
 
 		if ( $product && is_main_query() ) {
 
-			if ( defined('DOING_AJAX') && DOING_AJAX ) {
+			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 
 				$classes[] = 'product';
 			}
@@ -168,14 +173,17 @@ class TM_WC_Grid_List {
 	}
 
 	public function add_category_class( $classes, $class, $category ) {
-
 		if ( 'list' === $this->condition && $this->toggle_enabled ) {
 			$classes[] = 'product-list';
 		}
+
 		return array_unique( $classes );
 	}
 
 	public function add_toggle_button() {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
+			return;
+		}
 
 		if ( is_product_taxonomy() ) {
 			$id = wc_get_page_id( 'shop' );

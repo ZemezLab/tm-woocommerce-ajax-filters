@@ -53,10 +53,14 @@ class TM_WooCommerce_Ajax {
 
 			self::$_instance = new self();
 		}
+
 		return self::$_instance;
 	}
 
 	public function woocommerce_before_template_part( $template_name, $template_path, $located, $args ) {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
+			return;
+		}
 
 		if ( 'loop/no-products-found.php' === $template_name ) {
 
@@ -67,7 +71,6 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function woocommerce_after_template_part( $template_name, $template_path, $located, $args ) {
-
 		if ( 'loop/no-products-found.php' === $template_name ) {
 
 			$this->products_wrapper_end();
@@ -77,11 +80,17 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function products_wrapper_start() {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
+			return;
+		}
 
 		echo '<div class="tm-wc-ajax-products-wrapper">' . "\n";
 	}
 
 	public function products_wrapper_end() {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
+			return;
+		}
 
 		$tm_wc_ajax_filters = tm_wc_ajax_filters();
 
@@ -97,18 +106,18 @@ class TM_WooCommerce_Ajax {
 		$in_sidebar = false;
 		$id         = apply_filters( 'cherry_sidebars_custom_id', $id );
 
-		if ( isset( $sidebars_widgets[$id] ) && ! empty( $sidebars_widgets[$id] ) ) {
+		if ( isset( $sidebars_widgets[ $id ] ) && ! empty( $sidebars_widgets[ $id ] ) ) {
 
-			foreach ( $sidebars_widgets[$id] as $key => $widget_id ) {
+			foreach ( $sidebars_widgets[ $id ] as $key => $widget_id ) {
 
-				if ( 0 === strpos( $widget_id, 'tm_woo_ajax_filters' ) ){
+				if ( 0 === strpos( $widget_id, 'tm_woo_ajax_filters' ) ) {
 
 					$in_sidebar = true;
 				}
 			}
 		}
 
-		if( $in_sidebar && !is_admin() ) {
+		if ( $in_sidebar && ! is_admin() ) {
 
 			echo apply_filters( 'tm_wc_ajax_sidebar_before', '<div data-sidebar="' . $id . '">', $id );
 
@@ -135,8 +144,8 @@ class TM_WooCommerce_Ajax {
 
 		$wp->parse_request();
 
-		$args = $wp->query_vars;
-		$args = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
+		$args                = $wp->query_vars;
+		$args                = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
 		$args['post_status'] = 'publish';
 
 		parse_str( parse_url( $page_url, PHP_URL_QUERY ), $_GET );
@@ -146,21 +155,7 @@ class TM_WooCommerce_Ajax {
 
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'] = $posts;
 
-		if ( have_posts() ) :
-
-		woocommerce_product_subcategories( array( 'force_display' => true ) );
-
-		while ( have_posts() ) : the_post();
-
-			global $woocommerce_loop;
-
-			$woocommerce_loop['loop'] = ! empty( $woocommerce_loop['loop'] ) ? $woocommerce_loop['loop'] : ( int ) $products_count;
-
-			wc_get_template_part( 'content', 'product' );
-
-		endwhile;
-
-		endif;
+		$this->process_ajax_get_products();
 
 		$content = ob_get_clean();
 
@@ -201,7 +196,7 @@ class TM_WooCommerce_Ajax {
 
 		$page_url      = $_POST['pageUrl'];
 		$wcbreadcrumbs = isset( $_POST['wcbreadcrumbs'] ) ? ( bool ) json_decode( $_POST['wcbreadcrumbs'] ) : false;
-		$task          = isset( $_POST['task'] )          ? $_POST['task']                                  : '';
+		$task          = isset( $_POST['task'] ) ? $_POST['task'] : '';
 
 		$request_path  = parse_url( $page_url, PHP_URL_PATH );
 		$request_query = parse_url( $page_url, PHP_URL_QUERY );
@@ -221,7 +216,7 @@ class TM_WooCommerce_Ajax {
 
 		parse_str( parse_url( $page_url, PHP_URL_QUERY ), $_GET );
 
-		$args = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
+		$args                = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
 		$args['post_status'] = 'publish';
 
 		$wcquery = new TM_WC_Query();
@@ -230,36 +225,20 @@ class TM_WooCommerce_Ajax {
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'] = $posts;
 
 		ob_start();
+		do_action( 'woocommerce_before_shop_loop' );
 
-		if ( have_posts() ) :
+		woocommerce_product_loop_start();
 
-		do_action('woocommerce_before_shop_loop');
+		$this->process_ajax_get_products();
 
-			woocommerce_product_loop_start();
-
-			woocommerce_product_subcategories( array( 'force_display' => true ) );
-
-			while ( have_posts() ) : the_post();
-
-				wc_get_template_part( 'content', 'product' );
-
-			endwhile;
-
-			woocommerce_product_loop_end();
-
-		do_action('woocommerce_after_shop_loop');
-
-		elseif ( ! woocommerce_product_subcategories( array( 'before' => woocommerce_product_loop_start( false ), 'after' => woocommerce_product_loop_end( false ) ) ) ) :
-
-			wc_get_template( 'loop/no-products-found.php' );
-
-		endif;
+		woocommerce_product_loop_end();
+		do_action( 'woocommerce_after_shop_loop' );
 
 		$content               = ob_get_clean();
 		$filters_content       = array();
 		$wcbreadcrumbs_content = false;
 
-		if( 'filter' === $task || 'ordering' === $task ) {
+		if ( 'filter' === $task || 'ordering' === $task ) {
 
 			$widget   = new TM_Woo_Ajax_Filters_Widget();
 			$settings = $widget->get_settings();
@@ -274,39 +253,37 @@ class TM_WooCommerce_Ajax {
 
 				foreach ( $sidebar_widgets as $key => $widget_id ) {
 
-					if ( 0 === strpos( $widget_id, 'tm_woo_ajax_filters' ) ){
+					if ( 0 === strpos( $widget_id, 'tm_woo_ajax_filters' ) ) {
 
 						$in_sidebar = true;
 					}
 				}
 				if ( ! $in_sidebar ) {
 
-					unset( $sidebars_widgets[$sidebar] );
+					unset( $sidebars_widgets[ $sidebar ] );
 				}
 			}
 			foreach ( $sidebars_widgets as $sidebar => $sidebar_widgets ) {
 
-				$sidebar_args = $wp_registered_sidebars[$sidebar];
+				$sidebar_args = $wp_registered_sidebars[ $sidebar ];
 
 				foreach ( $sidebar_widgets as $key => $widget_id ) {
 
-					$sidebar_args['before_widget'] = $wp_registered_sidebars[$sidebar]['before_widget'];
+					$sidebar_args['before_widget'] = $wp_registered_sidebars[ $sidebar ]['before_widget'];
 
-					$filters_content[$sidebar][$key]['id'] = $widget_id;
+					$filters_content[ $sidebar ][ $key ]['id'] = $widget_id;
 
-					if ( 0 === strpos( $widget_id, 'tm_woo_ajax_filters' ) ){
+					if ( 0 === strpos( $widget_id, 'tm_woo_ajax_filters' ) ) {
 
 						$classname_ = '';
 
-						foreach ( ( array ) $wp_registered_widgets[$widget_id]['classname'] as $cn ) {
+						foreach ( ( array ) $wp_registered_widgets[ $widget_id ]['classname'] as $cn ) {
 
-							 if ( is_string( $cn ) )
-
+							if ( is_string( $cn ) ) {
 								$classname_ .= '_' . $cn;
-
-							elseif ( is_object( $cn ) )
-
+							} elseif ( is_object( $cn ) ) {
 								$classname_ .= '_' . get_class( $cn );
+							}
 						}
 						$classname_ = ltrim( $classname_, '_' );
 
@@ -316,19 +293,19 @@ class TM_WooCommerce_Ajax {
 
 						ob_start();
 
-						the_widget( 'TM_Woo_Ajax_Filters_Widget', $settings[$id], $sidebar_args );
+						the_widget( 'TM_Woo_Ajax_Filters_Widget', $settings[ $id ], $sidebar_args );
 
-						$filters_content[$sidebar][$key]['content'] = ob_get_clean();
+						$filters_content[ $sidebar ][ $key ]['content'] = ob_get_clean();
 
 					} else {
 
-						$filters_content[$sidebar][$key]['content'] = false;
+						$filters_content[ $sidebar ][ $key ]['content'] = false;
 					}
 				}
 			}
 		}
 
-		if( $wcbreadcrumbs ) {
+		if ( $wcbreadcrumbs ) {
 
 			ob_start();
 
@@ -350,6 +327,54 @@ class TM_WooCommerce_Ajax {
 		wp_send_json_success( $json );
 	}
 
+	/**
+	 * Display products in ajax.
+	 *
+	 * @since 1.0.6
+	 *
+	 */
+	public function process_ajax_get_products() {
+		if ( tm_ajax_wc_version_check( '3.3' ) ) {
+
+			wc_setup_loop();
+			$categories = false;
+			$display    = woocommerce_get_loop_display_mode();
+
+			if ( 'products' !== $display ) {
+				$categories = woocommerce_product_subcategories( array( 'force_display' => true ) );
+			}
+
+			if ( have_posts() && 'subcategories' !== $display ) :
+
+				while ( have_posts() ) : the_post();
+
+					wc_get_template_part( 'content', 'product' );
+
+				endwhile;
+
+			elseif ( ! $categories ) :
+
+				wc_get_template( 'loop/no-products-found.php' );
+
+			endif;
+		} else {
+			if ( have_posts() ) :
+
+				woocommerce_product_subcategories( array( 'force_display' => true ) );
+
+				while ( have_posts() ) : the_post();
+					wc_get_template_part( 'content', 'product' );
+				endwhile;
+
+			elseif ( ! woocommerce_product_subcategories( array(
+				'before' => woocommerce_product_loop_start( false ),
+				'after'  => woocommerce_product_loop_end( false )
+			) ) ) :
+				wc_get_template( 'loop/no-products-found.php' );
+			endif;
+		}
+	}
+
 	public function get_widget_id_base( $value ) {
 
 		return str_replace( 'tm_woo_ajax_filters-', '', $value );
@@ -365,7 +390,7 @@ class TM_WooCommerce_Ajax {
 
 			wp_localize_script( 'tm-wc-ajax-products', 'tmWooAjaxProducts', array(
 				'ajaxurl'        => admin_url( 'admin-ajax.php', is_ssl() ? 'https' : 'http' ),
-				'ajaxOrderby'    => 'yes' === get_option( 'tm_wc_ajax_filters_ordering_enable' )   ? true : false,
+				'ajaxOrderby'    => 'yes' === get_option( 'tm_wc_ajax_filters_ordering_enable' ) ? true : false,
 				'ajaxPagination' => 'yes' === get_option( 'tm_wc_ajax_filters_pagination_enable' ) ? true : false
 			) );
 		}
@@ -373,10 +398,11 @@ class TM_WooCommerce_Ajax {
 
 	public function pagination_args( $args = array() ) {
 
-		if ( defined('DOING_AJAX') && DOING_AJAX ) {
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 
 			$args['base'] = esc_url_raw( str_replace( 999999999, '%#%', remove_query_arg( 'add-to-cart', $this->get_pagenum_link( 999999999, false ) ) ) );
 		}
+
 		return $args;
 	}
 
@@ -388,13 +414,13 @@ class TM_WooCommerce_Ajax {
 		$parse_url = parse_url( $_POST['pageUrl'] );
 		$page_url  = str_replace( $parse_url['scheme'] . '://' . $parse_url['host'], '', $_POST['pageUrl'] );
 		$request   = remove_query_arg( 'paged', $page_url );
-		$home_root = parse_url(home_url());
-		$home_root = ( isset($home_root['path']) ) ? $home_root['path'] : '';
+		$home_root = parse_url( home_url() );
+		$home_root = ( isset( $home_root['path'] ) ) ? $home_root['path'] : '';
 		$home_root = preg_quote( $home_root, '|' );
-		$request   = preg_replace('|^'. $home_root . '|i', '', $request);
-		$request   = preg_replace('|^/+|', '', $request);
+		$request   = preg_replace( '|^' . $home_root . '|i', '', $request );
+		$request   = preg_replace( '|^/+|', '', $request );
 
-		if ( !$wp_rewrite->using_permalinks() ) {
+		if ( ! $wp_rewrite->using_permalinks() ) {
 
 			$base = trailingslashit( get_bloginfo( 'url' ) );
 
@@ -412,7 +438,7 @@ class TM_WooCommerce_Ajax {
 
 			preg_match( $qs_regex, $request, $qs_match );
 
-			if ( !empty( $qs_match[0] ) ) {
+			if ( ! empty( $qs_match[0] ) ) {
 
 				$query_string = $qs_match[0];
 				$request      = preg_replace( $qs_regex, '', $request );
@@ -421,18 +447,18 @@ class TM_WooCommerce_Ajax {
 
 				$query_string = '';
 			}
-			$request = preg_replace( "|$wp_rewrite->pagination_base/\d+/?$|", '', $request);
-			$request = preg_replace( '|^' . preg_quote( $wp_rewrite->index, '|' ) . '|i', '', $request);
-			$request = ltrim($request, '/');
+			$request = preg_replace( "|$wp_rewrite->pagination_base/\d+/?$|", '', $request );
+			$request = preg_replace( '|^' . preg_quote( $wp_rewrite->index, '|' ) . '|i', '', $request );
+			$request = ltrim( $request, '/' );
 			$base    = trailingslashit( get_bloginfo( 'url' ) );
 
-			if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' != $request ) )
-
+			if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' != $request ) ) {
 				$base .= $wp_rewrite->index . '/';
+			}
 
 			if ( $pagenum > 1 ) {
 
-				$request = ( ( !empty( $request ) ) ? trailingslashit( $request ) : $request ) . user_trailingslashit( $wp_rewrite->pagination_base . "/" . $pagenum, 'paged' );
+				$request = ( ( ! empty( $request ) ) ? trailingslashit( $request ) : $request ) . user_trailingslashit( $wp_rewrite->pagination_base . "/" . $pagenum, 'paged' );
 			}
 			$result = $base . $request . $query_string;
 		}
@@ -447,15 +473,19 @@ class TM_WooCommerce_Ajax {
 		$result = apply_filters( 'get_pagenum_link', $result );
 
 
-		if ( $escape )
+		if ( $escape ) {
 			return esc_url( $result );
-		else
+		} else {
 			return esc_url_raw( $result );
+		}
 	}
 
 	public function load_more_button() {
+		if ( tm_ajax_wc_prop_is_shortcode() ) {
+			return;
+		}
 
-		if( 'yes' !== get_option( 'tm_wc_ajax_filters_loadmore_enable', 'yes' ) ) {
+		if ( 'yes' !== get_option( 'tm_wc_ajax_filters_loadmore_enable', 'yes' ) ) {
 
 			return;
 		}
@@ -479,7 +509,7 @@ class TM_WooCommerce_Ajax {
 		$pagenum_link = html_entity_decode( get_pagenum_link() );
 		$url_parts    = explode( '?', $pagenum_link );
 
-		if( $args['current'] && ( $args['current'] < $args['total'] || -1 == $args['total'] ) ) {
+		if ( $args['current'] && ( $args['current'] < $args['total'] || - 1 == $args['total'] ) ) {
 
 			$link = str_replace( '%_%', $args['format'], $args['base'] );
 			$link = str_replace( '%#%', $args['current'] + 1, $link );
@@ -502,28 +532,54 @@ class TM_WooCommerce_Ajax {
 
 			$add_args = $args['add_args'];
 
-			if ( $add_args )
+			if ( $add_args ) {
 				$link = add_query_arg( $add_args, $link );
+			}
 			$link .= $args['add_fragment'];
 
-			$treshhold = wp_is_mobile() ? ( int ) get_option( 'tm_wc_ajax_filters_loadmore_treshold_mobile', 20 ) : ( int ) get_option( 'tm_wc_ajax_filters_loadmore_treshold', 20 );
-
-			if( $treshhold <= $this->loop ) {
-
+			if ( $this->wc_last_page_loaded() ) {
 				return;
 			}
+
 			$classes   = array( 'button', 'tm-wc-ajax-load-more-button', 'btn', 'btn-default' );
 			$text      = get_option( 'tm_wc_ajax_filters_loadmore_label', __( 'Load more', 'tm-woocommerce-ajax-filters' ) );
 			$preloader = apply_filters( 'tm_wc_ajax_filters_button_preloader', '' );
 			$html      = sprintf( '<button  data-href="%s" type="button" class="%s">%s</button>', $link, implode( ' ', $classes ), $text . $preloader );
-
 			echo apply_filters( 'tm_wc_ajax_filters_loadmore_button', $html, $link, $classes, $text, $preloader );
+		}
+	}
+
+	/**
+	 * Check if last page was loaded on archive product page.
+	 *
+	 * @since 1.0.6
+	 *
+	 * @return bool.
+	 */
+	public function wc_last_page_loaded() {
+		if ( tm_ajax_wc_version_check( '3.3' ) ) {
+			$current = wc_get_loop_prop( 'current_page' );
+			$total   = wc_get_loop_prop( 'total_pages' );
+
+			if ( $current == $total ) {
+				return true;
+			}
+
+			return false;
+		} else {
+			$treshhold = wp_is_mobile() ? ( int ) get_option( 'tm_wc_ajax_filters_loadmore_treshold_mobile', 20 ) : ( int ) get_option( 'tm_wc_ajax_filters_loadmore_treshold', 20 );
+
+			if ( $treshhold <= $this->loop ) {
+				return true;
+			}
+
+			return false;
 		}
 	}
 
 	public function loop_end() {
 
-		if( is_main_query() ) {
+		if ( is_main_query() ) {
 
 			global $woocommerce_loop;
 
@@ -539,7 +595,7 @@ function tm_wc_ajax() {
 
 tm_wc_ajax();
 
-if( ! class_exists( 'WC_Query' ) ) {
+if ( ! class_exists( 'WC_Query' ) ) {
 
 	require_once ABSPATH . 'wp-content/plugins/woocommerce/includes/class-wc-query.php';
 }
@@ -550,8 +606,8 @@ class TM_WC_Query extends WC_Query {
 
 		add_action( 'init', array( $this, 'add_endpoints' ) );
 		add_action( 'wp_loaded', array( $this, 'get_errors' ), 20 );
-		add_filter( 'query_vars', array( $this, 'add_query_vars'), 0 );
-		add_action( 'parse_request', array( $this, 'parse_request'), 0 );
+		add_filter( 'query_vars', array( $this, 'add_query_vars' ), 0 );
+		add_action( 'parse_request', array( $this, 'parse_request' ), 0 );
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 		add_action( 'wp', array( $this, 'remove_product_query' ) );
 		add_action( 'wp', array( $this, 'remove_ordering_args' ) );
