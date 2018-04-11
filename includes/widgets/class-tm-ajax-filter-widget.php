@@ -175,7 +175,7 @@ if ( class_exists( 'WC_Widget_Layered_Nav' ) ) {
 										unset( $current_filter[ $key ] );
 									}
 								}
-								$link = $this->get_page_base_url( $taxonomy );
+								$link = remove_query_arg( $filter_name, $this->get_page_base_url() );
 
 								if ( ! empty( $current_filter ) ) {
 
@@ -495,83 +495,4 @@ class TM_Woo_Extended_Price_Widget extends WC_Widget_Price_Filter {
 		$this->widget_end( $args );
 	}
 
-	/**
-	 * Get filtered min price for current products.
-	 *
-	 * @see    WC_Widget_Price_Filter->get_filtered_price
-	 * @return int
-	 */
-	protected function get_filtered_price() {
-
-		global $wp_query;
-
-		$query_args        = $wp_query->query_vars;
-		$filtered_by_price = false;
-
-		if ( isset( $query_args['meta_query']['price_filter'] ) ) {
-
-			$filtered_by_price = true;
-
-			unset( $query_args['meta_query']['price_filter'] );
-		}
-		if ( isset( $query_args['taxonomy'] ) && false !== strpos( $query_args['taxonomy'], 'pa_' ) ) {
-
-			unset( $query_args['taxonomy'] );
-
-			if ( isset( $query_args['term'] ) ) {
-
-				unset( $query_args['term'] );
-			}
-		}
-		unset( $query_args['paged'] );
-		unset( $query_args['page'] );
-		unset( $query_args['page_id'] );
-		unset( $query_args['p'] );
-		unset( $query_args['posts_per_page'] );
-		$query_args['nopaging'] = true;
-
-		$posts = new WP_Query( $query_args );
-
-		$GLOBALS['wp_query'] = $posts;
-
-		$result            = new stdClass();
-		$result->max_price = 0;
-
-		while ( have_posts() ) : the_post();
-
-			global $product;
-
-
-
-			if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '3.0', '>=' ) ) {
-				$price = $product->get_price();
-			} else {
-				$price = $product->price;
-			}
-
-			$result->max_price = max( $result->max_price, $price );
-
-			if( isset( $result->min_price ) ) {
-
-				$result->min_price = min( $result->min_price, $price );
-
-				continue;
-			}
-
-			$result->min_price = $price;
-
-		endwhile;
-
-		wp_reset_query();
-
-		$GLOBALS['wp_query'] = $wp_query;
-
-		if ( 2 > $posts->post_count && ! $filtered_by_price ) {
-
-			return false;
-		}
-		$result->min_price = isset( $result->min_price ) ? $result->min_price : 0;
-
-		return $result;
-	}
 }
