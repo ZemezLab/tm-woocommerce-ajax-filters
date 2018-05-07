@@ -337,24 +337,14 @@ class TM_WooCommerce_Ajax {
 		if ( tm_ajax_wc_version_check( '3.3' ) ) {
 
 			wc_setup_loop();
-			$categories = false;
-			$display    = woocommerce_get_loop_display_mode();
 
-			if ( 'products' !== $display ) {
-				$categories = woocommerce_product_subcategories( array( 'force_display' => true ) );
-			}
-
-			if ( have_posts() && 'subcategories' !== $display ) :
+			if ( have_posts() ) :
 
 				while ( have_posts() ) : the_post();
 
 					wc_get_template_part( 'content', 'product' );
 
 				endwhile;
-
-			elseif ( ! $categories ) :
-
-				wc_get_template( 'loop/no-products-found.php' );
 
 			endif;
 		} else {
