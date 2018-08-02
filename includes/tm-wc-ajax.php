@@ -150,6 +150,10 @@ class TM_WooCommerce_Ajax {
 
 		parse_str( parse_url( $page_url, PHP_URL_QUERY ), $_GET );
 
+		if ( get_option( 'page_on_front' ) == wc_get_page_id( 'shop' ) ) {
+			$args['post_type'] = 'product';
+		}
+
 		$wcquery = new TM_WC_Query();
 		$posts   = new WP_Query( $args );
 
@@ -193,7 +197,6 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function process_ajax() {
-
 		$page_url      = $_POST['pageUrl'];
 		$wcbreadcrumbs = isset( $_POST['wcbreadcrumbs'] ) ? ( bool ) json_decode( $_POST['wcbreadcrumbs'] ) : false;
 		$task          = isset( $_POST['task'] ) ? $_POST['task'] : '';
@@ -219,12 +222,17 @@ class TM_WooCommerce_Ajax {
 		$args                = array_merge( $args, $this->maybe_get_args_from_url( $page_url ) );
 		$args['post_status'] = 'publish';
 
+		if (  get_option( 'page_on_front' ) == wc_get_page_id( 'shop' ) ) {
+			$args['post_type'] = 'product';
+		}
+
 		$wcquery = new TM_WC_Query();
 		$posts   = new WP_Query( $args );
 
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'] = $posts;
 
 		ob_start();
+
 		do_action( 'woocommerce_before_shop_loop' );
 
 		woocommerce_product_loop_start();
@@ -334,6 +342,7 @@ class TM_WooCommerce_Ajax {
 	 *
 	 */
 	public function process_ajax_get_products() {
+
 		if ( tm_ajax_wc_version_check( '3.3' ) ) {
 
 			wc_setup_loop();
@@ -371,7 +380,6 @@ class TM_WooCommerce_Ajax {
 	}
 
 	public function enqueue_assets() {
-
 		if ( is_product_taxonomy() || is_post_type_archive( 'product' ) || is_page( wc_get_page_id( 'shop' ) ) ) {
 
 			wp_enqueue_style( 'tm-wc-ajax' );

@@ -81,6 +81,7 @@ if ( class_exists( 'WC_Widget_Layered_Nav' ) ) {
 
 					$url = remove_query_arg( array( 'min_price', 'max_price' ), $page_url );
 
+
 					echo apply_filters( 'tw_wc_price_filters_open', '<span class="tm-wc-ajax-filters-price">' );
 
 					if( $min ) {

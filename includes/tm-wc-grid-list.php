@@ -15,7 +15,6 @@ class TM_WC_Grid_List {
 	public $is_shop_loop = false;
 
 	public function __construct() {
-
 		$this->set_condition();
 
 		add_action( 'woocommerce_before_shop_loop', array( $this, 'add_toggle_button' ), 40 );

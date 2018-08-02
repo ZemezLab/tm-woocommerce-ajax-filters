@@ -147,9 +147,9 @@
 			pageUrl = currentUrl + '?' + formData;
 		}
 		var data = {
-				pageUrl:    pageUrl,
-				task:       'ordering'
-			};
+			pageUrl:    pageUrl,
+			task:       'ordering'
+		};
 
 		$.tmWcProductsAjax( data );
 	};
@@ -161,8 +161,8 @@
 			event.preventDefault();
 
 			var data = {
-					pageUrl:    event.currentTarget.href,
-				};
+				pageUrl:    event.currentTarget.href,
+			};
 			$.tmWcProductsAjax( data );
 		}
 	}
@@ -176,10 +176,10 @@
 			button = $( event.currentTarget );
 
 		var data = {
-				pageUrl:       event.currentTarget.dataset.href,
-				action:        'tm_wc_load_more',
-				productsCount: productsCount,
-			};
+			pageUrl:       event.currentTarget.dataset.href,
+			action:        'tm_wc_load_more',
+			productsCount: productsCount,
+		};
 
 		button.addClass( 'loading' );
 

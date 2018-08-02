@@ -95,7 +95,6 @@ class TM_WC_Ajax_Filters {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-
 		if ( ! $this->has_woocommerce() || defined( 'TM_WC_AJAX_FILTERS_VERISON' ) ) {
 
 			add_action( 'admin_notices', array( $this, 'admin_notice_disabled_woocommerce' ) );
