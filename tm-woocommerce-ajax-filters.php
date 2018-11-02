@@ -9,8 +9,6 @@
  * License:     GPL-3.0+
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
  * Domain Path: /languages
- * WC requires at least: 2.6.0
- * WC tested up to: 3.3.0
  */
 
 /*  This program is free software; you can redistribute it and/or modify
